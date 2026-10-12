@@ -17,6 +17,15 @@ const states = statesData.map(s => s.slug).sort();
 console.log(`✨ Found ${states.length} states to build: ${states.join(", ")}`);
 
 console.log(`\n====================================`);
+console.log(`🗺️  GENERATING SITEMAPS`);
+console.log(`====================================`);
+try {
+    execSync(`node scripts/generate-sitemap.mjs`, { stdio: "inherit" });
+} catch (error) {
+    console.error(`⚠️ Sitemap generation warning:`, error.message);
+}
+
+console.log(`\n====================================`);
 console.log(`🏗️  BUILDING BASE PAGES`);
 console.log(`====================================`);
 try {
