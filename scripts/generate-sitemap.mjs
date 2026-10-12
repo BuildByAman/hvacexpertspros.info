@@ -7,7 +7,6 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const PUBLIC_DIR = resolve(ROOT, 'public');
 const SITE_DIR = resolve(ROOT, '_site');
 
 // ── Import data ──────────────────────────────────────────────────────
@@ -17,14 +16,12 @@ const { default: site } = await import('../src/_data/site.js');
 
 const DOMAIN = (site.DOMAIN || 'https://hvacexpertspros.info').replace(/\/+$/, '');
 
-function writeBoth(filename, content) {
-  const pubPath = resolve(PUBLIC_DIR, filename);
-  writeFileSync(pubPath, content, 'utf8');
-
-  if (existsSync(SITE_DIR)) {
-    const sitePath = resolve(SITE_DIR, filename);
-    writeFileSync(sitePath, content, 'utf8');
+function writeToSite(filename, content) {
+  if (!existsSync(SITE_DIR)) {
+    mkdirSync(SITE_DIR, { recursive: true });
   }
+  const sitePath = resolve(SITE_DIR, filename);
+  writeFileSync(sitePath, content, 'utf8');
 }
 
 console.log(`🗺️ Generating sitemaps for ${DOMAIN}...`);
@@ -61,7 +58,7 @@ services.forEach(svc => {
 });
 
 coreXml += '</urlset>\n';
-writeBoth('sitemap-core.xml', coreXml);
+writeToSite('sitemap-core.xml', coreXml);
 console.log('✓ Created sitemap-core.xml');
 
 // ── 2. Generate sitemap-[state.slug].xml for each state ──────────────
@@ -88,7 +85,7 @@ states.forEach(st => {
   });
 
   stateXml += '</urlset>\n';
-  writeBoth(`sitemap-${st.slug}.xml`, stateXml);
+  writeToSite(`sitemap-${st.slug}.xml`, stateXml);
 });
 console.log(`✓ Created ${states.length} state sitemaps (${totalCityUrls} cities total)`);
 
@@ -109,12 +106,12 @@ states.forEach(st => {
 });
 
 indexXml += '</sitemapindex>\n';
-writeBoth('sitemap.xml', indexXml);
+writeToSite('sitemap.xml', indexXml);
 console.log('✓ Created sitemap.xml (Sitemap Index)');
 
 // ── 4. Generate robots.txt ───────────────────────────────────────────
 const robotsTxt = `User-agent: *\nAllow: /\nSitemap: ${DOMAIN}/sitemap.xml\n`;
-writeBoth('robots.txt', robotsTxt);
+writeToSite('robots.txt', robotsTxt);
 console.log('✓ Created robots.txt');
 
 console.log('🎉 All sitemaps successfully generated!');
